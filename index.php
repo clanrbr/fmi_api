@@ -88,25 +88,6 @@ $app->get('/courses', function () use ($app) {
 	}
 });
 
-$app->get('/courses', function () use ($app) {
-	try {
-		$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id");
-		if ($courses) {
-			$app->response()->header('Content-Type', 'application/json');
-			echo json_encode($courses  , JSON_UNESCAPED_UNICODE );
-		} 
-		else {
-			throw new ResourceNotFoundException();
-		}
-	}
-	catch (ResourceNotFoundException $e) {
-		$app->response()->status(404);
-	}
-	catch (Exception $e) {
-			  $app->response()->status(400);
-			  $app->response()->header('X-Status-Reason', $e->getMessage());
-	}
-});
 
 // http://alexbilbie.com/2013/02/securing-your-api-with-oauth-2/
 // http://help.slimframework.com/discussions/questions/230-can-i-have-a-get-request-with-variable-number-of-parameters-in-the-url
