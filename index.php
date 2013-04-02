@@ -97,7 +97,9 @@ $app->get('/register_token', function () use ($app) {
 			echo json_encode($generatedToken,JSON_UNESCAPED_UNICODE);
 		}
 		else {
-			throw new Exception('Nothing was found',400);
+			$error['error'] = 'No token was generated';
+			$app->response()->header('Content-Type', 'application/json');
+			echo json_encode($error,JSON_UNESCAPED_UNICODE);
 		}
 });
 
@@ -144,6 +146,99 @@ $app->get('/:token/program/:id', function ($token,$id) use ($app) {
 		else {
 			generateCustomError($app,400,"ID is missing");
 		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/teachers', function ($token) use ($app) {
+	if (checkToken($token)) {
+		try {
+			$smesters = R::getAll("SELECT * FROM teachers");
+			if ($smesters) {
+				$app->response()->header('Content-Type', 'application/json');
+				echo json_encode($smesters  , JSON_UNESCAPED_UNICODE );
+			}
+			else {
+				throw new Exception('Nothing was found',400);
+			}
+		}
+		catch (Exception $e) {
+			generateExceptionError($app,$e);
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/teachers/department/:department', function ($token,$department) use ($app) {
+	if (checkToken($token)) {
+		try {
+			$escaped_department = mysql_real_escape_string($department);
+			$smesters = R::getAll("SELECT * FROM teachers WHERE department='$escaped_department'");
+			if ($smesters) {
+				$app->response()->header('Content-Type', 'application/json');
+				echo json_encode($smesters  , JSON_UNESCAPED_UNICODE );
+			}
+			else {
+				throw new Exception('Nothing was found',400);
+			}
+		}
+		catch (Exception $e) {
+			generateExceptionError($app,$e);
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/teachers/position/:position', function ($token,$position) use ($app) {
+	if (checkToken($token)) {
+		try {
+			$escaped_position = mysql_real_escape_string($position);
+			$smesters = R::getAll("SELECT * FROM teachers WHERE teacher_position='$escaped_position'");
+			if ($smesters) {
+				$app->response()->header('Content-Type', 'application/json');
+				echo json_encode($smesters  , JSON_UNESCAPED_UNICODE );
+			}
+			else {
+				throw new Exception('Nothing was found',400);
+			}
+		}
+		catch (Exception $e) {
+			generateExceptionError($app,$e);
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/teacher/:id', function ($token,$id) use ($app) {
+	if (checkToken($token)) {
+		if ( preg_match('/^\d{1,}$/', $id) ) {
+			try {
+				$escaped_id = mysql_real_escape_string($id);
+				$smester = R::getRow("SELECT * FROM teachers WHERE teacher_id = $escaped_id");
+				if ($smester) {
+					$app->response()->header('Content-Type', 'application/json');
+					echo json_encode($smester  , JSON_UNESCAPED_UNICODE );
+				}
+				else {
+					throw new Exception('Nothing was found',400);
+				}
+			}
+			catch (Exception $e) {
+				generateExceptionError($app,$e);
+			}
+		}
+		else {
+			generateCustomError($app,400,"ID is missing");
+		}
+			
 	}
 	else {
 		generateCustomError($app,400,"Invalid Token");
@@ -367,24 +462,29 @@ $app->get('/:token/courses/semester/:semester', function ($token,$semester) use 
 	}
 });
 
-$app->get('/:token/courses/credits/:credits', function ($token,$credits) use ($app) {
+$app->get('/:token/courses/credits/:credits(/:program)', function ($token,$credits,$program=0) use ($app,$groupMap) {
 	if (checkToken($token)) {
 		$courses="";
+		$program_where="";
+		if ( $program>0 ) {
+			$escaped_program = mysql_real_escape_string($program);
+			$program_where=" AND courses.programme_id=$escaped_program";
+		}
 		if ( preg_match('/^>\d{1,}\.?\d*$/', $credits) ) {
 			$credits=substr($credits, 1);
 			$escaped_credits=mysql_real_escape_string($credits);
 			var_dump($escaped_credits);
-			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits>$escaped_credits");
+			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits>$escaped_credits$program_where");
 		}
 		else if ( preg_match('/^<\d{1,}\.?\d*$/', $credits) ) {
 			$credits=substr($credits, 1);
 			$escaped_credits=mysql_real_escape_string($credits);
 			var_dump($escaped_credits);
-			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits<$escaped_credits");
+			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits<$escaped_credits$program_where");
 		}
 		else if ( preg_match('/^\d{1,}\.?\d*$/', $credits) ) {
 			$escaped_credits=mysql_real_escape_string($credits);
-			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits=$escaped_credits");
+			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits=$escaped_credits$program_where");
 		}
 		else {
 			generateCustomError($app,400,"Not in the correct format");
@@ -431,9 +531,55 @@ $app->get('/:token/courses/group/:group', function ($token,$group) use ($app,$gr
 	}
 });
 
+$app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function ($token,$year=0,$program_id=0,$semester_id=0) use ($app,$groupMap) {
+	if (checkToken($token)) {
+		$where_clause="";
+		if ( $year>0 )
+		  {
+			$escaped_year=mysql_real_escape_string($year);
+			$where_clause=" AND courses.year=$escaped_year";
+		  }
+		if ( $program_id>0 ) {
+			$escaped_program_id=mysql_real_escape_string($program_id);
+			$where_clause=" AND courses.programme_id=$escaped_program_id";
+		}
+		if ( $semester_id>0 ) {
+			$escaped_semester_id=mysql_real_escape_string($semester_id);
+			$where_clause=" AND courses.semester=$escaped_semester_id";
+		}
+		
+		$where_clause = preg_replace('/^ AND/', '', $where_clause);
+		
+		if ( strlen($where_clause)>0 ) {
+			$where_clause = ' WHERE '.$where_clause;
+			try {
+				$program = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id $where_clause");
+				if ($program) {
+					$app->response()->header('Content-Type', 'application/json');
+					echo json_encode($program  , JSON_UNESCAPED_UNICODE );
+				}
+				else {
+					throw new Exception('Nothing was found',400);
+				}
+			}
+			catch (Exception $e) {
+					  generateExceptionError($app,$e);
+			}
+		}
+		else {
+			generateCustomError($app,400,"Please specify.");
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
 // http://alexbilbie.com/2013/02/securing-your-api-with-oauth-2/
 // http://help.slimframework.com/discussions/questions/230-can-i-have-a-get-request-with-variable-number-of-parameters-in-the-url
 // http://nesbot.com/2012/6/18/slim-wildcard-routes-via-route-middleware
+
+//da
 // http://linkey.blogs.lincoln.ac.uk/tag/access-token/
 
 R::close();
