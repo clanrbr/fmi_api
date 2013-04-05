@@ -282,10 +282,9 @@ $app->get('/:token/semester_filter(/:year(/:start_date(/:end_date)))', function 
             $where_clause.=" AND season_end_year=$escaped_end_date";
         }
 
-        var_dump($where_clause);
         $where_clause = preg_replace('/^ AND/', '', $where_clause);
         if ( strlen($where_clause)>0 ) {
-            $where_clause = ' WHERE '.$where_clause;
+            $where_clause = " WHERE ".$where_clause;
             try {
                 $escaped_season = mysql_real_escape_string($season);
                 $semester = R::getAll("SELECT * FROM semesters $where_clause");
@@ -517,13 +516,11 @@ $app->get('/:token/courses/credits/:credits(/:program)', function ($token,$credi
 		if ( preg_match('/^>\d{1,}\.?\d*$/', $credits) ) {
 			$credits=substr($credits, 1);
 			$escaped_credits=mysql_real_escape_string($credits);
-			var_dump($escaped_credits);
 			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits>$escaped_credits$program_where");
 		}
 		else if ( preg_match('/^<\d{1,}\.?\d*$/', $credits) ) {
 			$credits=substr($credits, 1);
 			$escaped_credits=mysql_real_escape_string($credits);
-			var_dump($escaped_credits);
 			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.credits<$escaped_credits$program_where");
 		}
 		else if ( preg_match('/^\d{1,}\.?\d*$/', $credits) ) {
