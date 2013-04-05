@@ -2,7 +2,7 @@
 	class ApiClient
 	{
 		public $token;
-		private $url="http://localhost/api/index.php/";
+		private $url="http://localhost/api/index.php";
 
 		public function __construct($token="") {
 			$this->token = $token;
@@ -129,6 +129,7 @@
 			$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             return $output;
 		}
+        
         private function _get_all_semesters() {
             $params=func_get_args();
             $ch = array_shift($params);
@@ -143,6 +144,38 @@
 			return $output;
         }
         
+        private function _get_semesters_by_filter() {
+            $params=func_get_args();
+			$ch = array_shift($params);
+			$position="";
+            
+			if ( empty($params) ) {
+                trigger_error("Missing parameter position", E_USER_ERROR);
+                return;
+            }
+			$filter=array_shift($params);
+            
+            $urlextend="";
+            if (is_array($filter)) {
+                if (isset($filter['season']))
+                  $urlextend.="/".$filter['season'];
+                if (isset($filter['start_year']))
+                  $urlextend.="/".$filter['start_year'];
+                if (isset($filter['end_year']))
+                  $urlextend.="/".$filter['end_year'];
+            }
+            else {
+                trigger_error("Parameters should be passed by array", E_USER_ERROR);
+                return;
+            }
+            
+            curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/semester_filter".$urlextend); 
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($ch);
+			$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            return $output;
+        }
+        
 		public function __call($func, $params=array()) {
 			$ch = curl_init();
 			array_unshift($params, $ch);
@@ -153,13 +186,14 @@
 	}
 
 	$cl= new ApiClient("Bshkpc5KWESLAZQGx");
-	$cool=$cl->get_all_programs();	
+	$cool=$cl->get_all_programs();
 	$cool1=$cl->get_program_by_id('1');	
     $cool2=$cl->gel_all_teachers();
     $cool3=$cl->get_teachers_by_department("СТ");
     $cool4=$cl->get_teachers_by_position("главен асистент");
     $cool5=$cl->get_teacher_by_id(1);
     $cool6=$cl->get_all_semesters();
-	echo $cool6;
+    $cool7=$cl->get_semesters_by_filter(array("season"=>"summer","start_year"=>2012,"end_year"=>2013));
+	echo $cool7;
 	// var_dump($cool1);
 ?>
