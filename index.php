@@ -155,10 +155,10 @@ $app->get('/:token/program/:id', function ($token,$id) use ($app) {
 $app->get('/:token/teachers', function ($token) use ($app) {
 	if (checkToken($token)) {
 		try {
-			$smesters = R::getAll("SELECT * FROM teachers");
-			if ($smesters) {
+			$teachers = R::getAll("SELECT * FROM teachers");
+			if ($teachers) {
 				$app->response()->header('Content-Type', 'application/json');
-				echo json_encode($smesters  , JSON_UNESCAPED_UNICODE );
+				echo json_encode($teachers  , JSON_UNESCAPED_UNICODE );
 			}
 			else {
 				throw new Exception('Nothing was found',400);
@@ -177,10 +177,10 @@ $app->get('/:token/teachers/department/:department', function ($token,$departmen
 	if (checkToken($token)) {
 		try {
 			$escaped_department = mysql_real_escape_string($department);
-			$smesters = R::getAll("SELECT * FROM teachers WHERE department='$escaped_department'");
-			if ($smesters) {
+			$teachers = R::getAll("SELECT * FROM teachers WHERE department='$escaped_department'");
+			if ($teachers) {
 				$app->response()->header('Content-Type', 'application/json');
-				echo json_encode($smesters  , JSON_UNESCAPED_UNICODE );
+				echo json_encode($teachers  , JSON_UNESCAPED_UNICODE );
 			}
 			else {
 				throw new Exception('Nothing was found',400);
@@ -222,10 +222,10 @@ $app->get('/:token/teacher/:id', function ($token,$id) use ($app) {
 		if ( preg_match('/^\d{1,}$/', $id) ) {
 			try {
 				$escaped_id = mysql_real_escape_string($id);
-				$smester = R::getRow("SELECT * FROM teachers WHERE teacher_id = $escaped_id");
-				if ($smester) {
+				$teacher = R::getRow("SELECT * FROM teachers WHERE teacher_id = $escaped_id");
+				if ($teacher) {
 					$app->response()->header('Content-Type', 'application/json');
-					echo json_encode($smester  , JSON_UNESCAPED_UNICODE );
+					echo json_encode($teacher  , JSON_UNESCAPED_UNICODE );
 				}
 				else {
 					throw new Exception('Nothing was found',400);
@@ -260,6 +260,89 @@ $app->get('/:token/semesters', function ($token,$season='',$start_date=0,$end_da
 		catch (Exception $e) {
 			generateExceptionError($app,$e);
 		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+
+// $where_clause="";
+// if ( $year>0 )
+  // {
+    // $escaped_year=mysql_real_escape_string($year);
+    // $where_clause=" AND courses.year=$escaped_year";
+  // }
+// if ( $program_id>0 ) {
+    // $escaped_program_id=mysql_real_escape_string($program_id);
+    // $where_clause=" AND courses.programme_id=$escaped_program_id";
+// }
+// if ( $semester_id>0 ) {
+    // $escaped_semester_id=mysql_real_escape_string($semester_id);
+    // $where_clause=" AND courses.semester=$escaped_semester_id";
+// }
+
+// $where_clause = preg_replace('/^ AND/', '', $where_clause);
+
+// if ( strlen($where_clause)>0 ) {
+    // $where_clause = ' WHERE '.$where_clause;
+    // try {
+        // $program = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id $where_clause");
+        // if ($program) {
+            // $app->response()->header('Content-Type', 'application/json');
+            // echo json_encode($program  , JSON_UNESCAPED_UNICODE );
+        // }
+        // else {
+            // throw new Exception('Nothing was found',400);
+        // }
+    // }
+    // catch (Exception $e) {
+              // generateExceptionError($app,$e);
+    // }
+// }
+// else {
+    // generateCustomError($app,400,"Please specify.");
+// }
+
+
+
+$app->get('/:token/semester(/:year(/:start_date(/:end_date)))', function ($token,$season="",$start_date=0,$end_date=0) use ($app) {
+	if (checkToken($token)) {
+        $where_clause="";
+        if ( !empty($season) ) {
+            $escaped_season=mysql_real_escape_string($season);
+            $where_clause=" AND semester_season='$escaped_season'";
+        }
+        if ( $start_date>0 ) {
+            $escaped_start_date=mysql_real_escape_string($start_date);
+            $where_clause=" AND season_start_year=$escaped_start_date";
+        }
+        if ( $end_date>0 ) {
+            $escaped_end_date=mysql_real_escape_string($end_date);
+            $where_clause=" AND season_end_year=$escaped_end_date";
+        }
+
+        $where_clause = preg_replace('/^ AND/', '', $where_clause);
+        if ( strlen($where_clause)>0 ) {
+            $where_clause = ' WHERE '.$where_clause;
+            try {
+                $escaped_season = mysql_real_escape_string($season);
+                $semester = R::getAll("SELECT * FROM semesters WHERE semester_season $where_clause  ");
+                if ($semester) {
+                    $app->response()->header('Content-Type', 'application/json');
+                    echo json_encode($semester  , JSON_UNESCAPED_UNICODE );
+                }
+                else {
+                    throw new Exception('Nothing was found',400);
+                }
+            }
+            catch (Exception $e) {
+                generateExceptionError($app,$e);
+            }
+        }
+        else {
+            generateCustomError($app,400,"Please specify.");
+        }
 	}
 	else {
 		generateCustomError($app,400,"Invalid Token");
@@ -534,11 +617,10 @@ $app->get('/:token/courses/group/:group', function ($token,$group) use ($app,$gr
 $app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function ($token,$year=0,$program_id=0,$semester_id=0) use ($app,$groupMap) {
 	if (checkToken($token)) {
 		$where_clause="";
-		if ( $year>0 )
-		  {
+		if ( $year>0 ) {
 			$escaped_year=mysql_real_escape_string($year);
 			$where_clause=" AND courses.year=$escaped_year";
-		  }
+		}
 		if ( $program_id>0 ) {
 			$escaped_program_id=mysql_real_escape_string($program_id);
 			$where_clause=" AND courses.programme_id=$escaped_program_id";
