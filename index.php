@@ -199,10 +199,10 @@ $app->get('/:token/teachers/position/:position', function ($token,$position) use
 	if (checkToken($token)) {
 		try {
 			$escaped_position = mysql_real_escape_string($position);
-			$smesters = R::getAll("SELECT * FROM teachers WHERE teacher_position='$escaped_position'");
-			if ($smesters) {
+			$teachers = R::getAll("SELECT * FROM teachers WHERE teacher_position='$escaped_position'");
+			if ($teachers) {
 				$app->response()->header('Content-Type', 'application/json');
-				echo json_encode($smesters  , JSON_UNESCAPED_UNICODE );
+				echo json_encode($teachers  , JSON_UNESCAPED_UNICODE );
 			}
 			else {
 				throw new Exception('Nothing was found',400);
