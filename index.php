@@ -266,68 +266,29 @@ $app->get('/:token/semesters', function ($token,$season='',$start_date=0,$end_da
 	}
 });
 
-
-// $where_clause="";
-// if ( $year>0 )
-  // {
-    // $escaped_year=mysql_real_escape_string($year);
-    // $where_clause=" AND courses.year=$escaped_year";
-  // }
-// if ( $program_id>0 ) {
-    // $escaped_program_id=mysql_real_escape_string($program_id);
-    // $where_clause=" AND courses.programme_id=$escaped_program_id";
-// }
-// if ( $semester_id>0 ) {
-    // $escaped_semester_id=mysql_real_escape_string($semester_id);
-    // $where_clause=" AND courses.semester=$escaped_semester_id";
-// }
-
-// $where_clause = preg_replace('/^ AND/', '', $where_clause);
-
-// if ( strlen($where_clause)>0 ) {
-    // $where_clause = ' WHERE '.$where_clause;
-    // try {
-        // $program = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id $where_clause");
-        // if ($program) {
-            // $app->response()->header('Content-Type', 'application/json');
-            // echo json_encode($program  , JSON_UNESCAPED_UNICODE );
-        // }
-        // else {
-            // throw new Exception('Nothing was found',400);
-        // }
-    // }
-    // catch (Exception $e) {
-              // generateExceptionError($app,$e);
-    // }
-// }
-// else {
-    // generateCustomError($app,400,"Please specify.");
-// }
-
-
-
-$app->get('/:token/semester(/:year(/:start_date(/:end_date)))', function ($token,$season="",$start_date=0,$end_date=0) use ($app) {
+$app->get('/:token/semester_filter(/:year(/:start_date(/:end_date)))', function ($token,$season="",$start_date=0,$end_date=0) use ($app) {
 	if (checkToken($token)) {
         $where_clause="";
         if ( !empty($season) ) {
             $escaped_season=mysql_real_escape_string($season);
-            $where_clause=" AND semester_season='$escaped_season'";
+            $where_clause.=" AND semester_season='$escaped_season'";
         }
         if ( $start_date>0 ) {
             $escaped_start_date=mysql_real_escape_string($start_date);
-            $where_clause=" AND season_start_year=$escaped_start_date";
+            $where_clause.=" AND season_start_year=$escaped_start_date";
         }
         if ( $end_date>0 ) {
             $escaped_end_date=mysql_real_escape_string($end_date);
-            $where_clause=" AND season_end_year=$escaped_end_date";
+            $where_clause.=" AND season_end_year=$escaped_end_date";
         }
 
+        var_dump($where_clause);
         $where_clause = preg_replace('/^ AND/', '', $where_clause);
         if ( strlen($where_clause)>0 ) {
             $where_clause = ' WHERE '.$where_clause;
             try {
                 $escaped_season = mysql_real_escape_string($season);
-                $semester = R::getAll("SELECT * FROM semesters WHERE semester_season $where_clause  ");
+                $semester = R::getAll("SELECT * FROM semesters $where_clause");
                 if ($semester) {
                     $app->response()->header('Content-Type', 'application/json');
                     echo json_encode($semester  , JSON_UNESCAPED_UNICODE );
@@ -619,15 +580,15 @@ $app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function 
 		$where_clause="";
 		if ( $year>0 ) {
 			$escaped_year=mysql_real_escape_string($year);
-			$where_clause=" AND courses.year=$escaped_year";
+			$where_clause.=" AND courses.year=$escaped_year";
 		}
 		if ( $program_id>0 ) {
 			$escaped_program_id=mysql_real_escape_string($program_id);
-			$where_clause=" AND courses.programme_id=$escaped_program_id";
+			$where_clause.=" AND courses.programme_id=$escaped_program_id";
 		}
 		if ( $semester_id>0 ) {
 			$escaped_semester_id=mysql_real_escape_string($semester_id);
-			$where_clause=" AND courses.semester=$escaped_semester_id";
+			$where_clause.=" AND courses.semester=$escaped_semester_id";
 		}
 		
 		$where_clause = preg_replace('/^ AND/', '', $where_clause);
