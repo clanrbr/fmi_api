@@ -1,6 +1,7 @@
 <?php
 	class ApiClient
 	{
+		private $ch;
 		public $token;
 		private $url="http://localhost/api/index.php";
 
@@ -34,166 +35,162 @@
         }
 		
 		private function _get_all_programs() {
-			$params=func_get_args();
-			$ch = array_shift($params);
-            if ( !(empty($params)) ) {
-                trigger_error("This function don't take parameters", E_USER_ERROR);
-                return;
-            }
-            
-			curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/programs"); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-			$output = curl_exec($ch);
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/programs"); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+			$output = curl_exec($this->ch);
 			return $output;
 		}
 		
-		private function _get_program_by_id() {
-			$params=func_get_args();
-			$ch = array_shift($params);
-			$id="";
-            
-			if ( empty($params) ) {
-                trigger_error("Missing parameter id", E_USER_ERROR);
+		private function _get_program_by_id($id=0) {
+			if ( empty($id) ) {
+                trigger_error("Missing parameter id in get_program_by_id", E_USER_ERROR);
                 return;
             }
                 
-			$id=array_shift($params);	
-			curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/program/".$id); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-			$output = curl_exec($ch);
-			$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/program/".$id); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+			$output = curl_exec($this->ch);
             return $output;
 		}
         
         private function _gel_all_teachers() {
-            $params=func_get_args();
-            $ch = array_shift($params);
-            
-            if ( !(empty($params)) ) {
-                trigger_error("This function don't take parameters", E_USER_ERROR);
-                return;
-            }
-            curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/teachers"); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-			$output = curl_exec($ch);
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/teachers"); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+			$output = curl_exec($this->ch);
 			return $output;
         }
         
-        private function _get_teachers_by_department() {
-            $params=func_get_args();
-			$ch = array_shift($params);
-			$department="";
-            
-			if ( empty($params) ) {
-                trigger_error("Missing parameter department", E_USER_ERROR);
-                return;
-            }
-			$department=array_shift($params);
-            curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/teachers/department/".$department); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-			$output = curl_exec($ch);
-			$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        private function _get_teachers_by_department($department="") {
+			if ( empty($department) ) {
+				trigger_error("Missing parameter department in get_teachers_by_department", E_USER_ERROR);
+				return;
+			}
+
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/teachers/department/".$department); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($this->ch);
             return $output;
         }
-        private function _get_teachers_by_position() {
-            $params=func_get_args();
-			$ch = array_shift($params);
-			$position="";
-            
-			if ( empty($params) ) {
-                trigger_error("Missing parameter position", E_USER_ERROR);
-                return;
-            }
-			$position=array_shift($params);
-            curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/teachers/position/".urlencode($position)); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-			$output = curl_exec($ch);
-			$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		
+        private function _get_teachers_by_position($position="") {
+			if ( empty($position) ) {
+				trigger_error("Missing parameter position in get_teachers_by_position", E_USER_ERROR);
+				return;
+			}
+
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/teachers/position/".urlencode($position)); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($this->ch);
             return $output;
         }
         
-        private function _get_teacher_by_id() {
-			$params=func_get_args();
-			$ch = array_shift($params);
-			$id="";
-            
-			if ( empty($params) ) {
-                trigger_error("Missing parameter id", E_USER_ERROR);
+        private function _get_teacher_by_id($id=0) {
+			if ( empty($id) ) {
+                trigger_error("Missing parameter id in get_teacher_by_id", E_USER_ERROR);
                 return;
             }
-                
-			$id=array_shift($params);	
-			curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/teacher/".$id); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-			$output = curl_exec($ch);
-			$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/teacher/".$id); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+			$output = curl_exec($this->ch);
             return $output;
 		}
         
         private function _get_all_semesters() {
-            $params=func_get_args();
-            $ch = array_shift($params);
-            
-            if ( !(empty($params)) ) {
-                trigger_error("This function don't take parameters", E_USER_ERROR);
-                return;
-            }
-            curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/semesters"); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-			$output = curl_exec($ch);
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/semesters"); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+			$output = curl_exec($this->ch);
 			return $output;
         }
         
-        private function _get_semesters_by_filter() {
-            $params=func_get_args();
-			$ch = array_shift($params);
-			$position="";
+        private function _get_semesters_by_filter($params) {
+			$urlextend="";
+			if ( isset($params['season']) )
+			  $urlextend.="/".$params['season'];
+			if ( isset($params['start_year'] ) )
+			  $urlextend.="/".$params['start_year'];
+			if ( isset($params['end_year']) )
+			  $urlextend.="/".$params['end_year'];
             
-			if ( empty($params) ) {
-                trigger_error("Missing parameter position", E_USER_ERROR);
-                return;
-            }
-			$filter=array_shift($params);
-            
-            $urlextend="";
-            if (is_array($filter)) {
-                if (isset($filter['season']))
-                  $urlextend.="/".$filter['season'];
-                if (isset($filter['start_year']))
-                  $urlextend.="/".$filter['start_year'];
-                if (isset($filter['end_year']))
-                  $urlextend.="/".$filter['end_year'];
-            }
-            else {
-                trigger_error("Parameters should be passed by array", E_USER_ERROR);
-                return;
-            }
-            
-            curl_setopt($ch, CURLOPT_URL, $this->url."/".$this->token."/semester_filter".$urlextend); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-			$output = curl_exec($ch);
-			$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/semester_filter".$urlextend); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($this->ch);
             return $output;
         }
-        
+
+		private function _get_semesters_by_season($season) {
+			if ( empty($season) ) {
+                trigger_error("Missing parameter season in get_semesters_by_season", E_USER_ERROR);
+                return;
+            }
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/semesters/season/".$season); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($this->ch);
+            return $output;
+		}
+		
+		private function _get_semesters_by_start_year($start_year=0) {
+			if ( empty($start_year) ) {
+				trigger_error("Missing parameter start_year in get_semesters_by_start_year", E_USER_ERROR);
+                return;
+			}
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/semesters/start/".$start_year); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($this->ch);
+            return $output;
+		}
+		
+		private function _get_semesters_by_end_year($end_year=0) {
+			if ( empty($end_year) ) {
+				trigger_error("Missing parameter end_year in get_semesters_by_end_year", E_USER_ERROR);
+                return;
+			}
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/semesters/end/".$end_year); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($this->ch);
+            return $output;
+		}
+		
+		private function _get_all_courses() {
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/courses"); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+			$output = curl_exec($this->ch);
+            return $output;
+		}
+		
+		private function _get_courses_by_id($id=0) {
+			if ( empty($id) ) {
+                trigger_error("Missing parameter id in get_teacher_by_id", E_USER_ERROR);
+                return;
+            }
+
+			curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/course/".$id); 
+			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+			$output = curl_exec($this->ch);
+            return $output;
+		}
+
 		public function __call($func, $params=array()) {
-			$ch = curl_init();
-			array_unshift($params, $ch);
+			$this->ch = curl_init();
 			$output = call_user_func_array(array($this,'_'.$func),$params);
-			curl_close($ch);
+			curl_close($this->ch);
 			return $output;
 		}
 	}
 
 	$cl= new ApiClient("Bshkpc5KWESLAZQGx");
 	$cool=$cl->get_all_programs();
-	$cool1=$cl->get_program_by_id('1');	
+	$cool1=$cl->get_program_by_id(1);	
     $cool2=$cl->gel_all_teachers();
     $cool3=$cl->get_teachers_by_department("СТ");
     $cool4=$cl->get_teachers_by_position("главен асистент");
     $cool5=$cl->get_teacher_by_id(1);
     $cool6=$cl->get_all_semesters();
     $cool7=$cl->get_semesters_by_filter(array("season"=>"summer","start_year"=>2012,"end_year"=>2013));
-	echo $cool7;
-	// var_dump($cool1);
+	$cool8=$cl->get_semesters_by_season("summer");
+	$cool9=$cl->get_semesters_by_start_year(2012);
+	$cool10=$cl->get_semesters_by_end_year(2013);
+	$cool11=$cl->get_all_courses();
+	$cool12=$cl->get_courses_by_id(4);
+	echo $cool12;
 ?>
