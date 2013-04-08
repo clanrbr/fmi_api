@@ -170,6 +170,63 @@
             return $output;
 		}
 
+        private function _get_courses_by_semester_year($year=0) {
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/courses/year/".$year); 
+            curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+            $output = curl_exec($this->ch);
+            return $output;
+        }
+
+        private function _get_courses_by_semester($semester=0) {
+            if ( empty($semester) ) {
+                trigger_error("Missing parameter semester in get_courses_by_semester", E_USER_ERROR);
+                return;
+            }
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/courses/semester/".$semester); 
+            curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+            $output = curl_exec($this->ch);
+            return $output;
+        }
+
+        private function _get_courses_by_credits($credits="") {
+            if ( empty($credits) ) {
+                trigger_error("Missing parameter credits in get_courses_by_credits", E_USER_ERROR);
+                return;
+            }
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/courses/credits/".$credits); 
+            curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+            $output = curl_exec($this->ch);
+            return $output;
+        }
+
+        private function _get_courses_by_group($group="") {
+            if ( empty($group) ) {
+                trigger_error("Missing parameter group in get_courses_by_group", E_USER_ERROR);
+                return;
+            }
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/courses/group/".$group); 
+            curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1); 
+            $output = curl_exec($this->ch);
+            return $output;
+        }
+
+        private function _get_program_by_filter($filter) {
+            $urlextend="";
+            if ( isset($filter['year']) )
+              $urlextend.="/".$filter['year'];
+            if ( isset($filter['program_id'] ) )
+              $urlextend.="/".$filter['program_id'];
+            if ( isset($filter['semester']) )
+              $urlextend.="/".$filter['semester'];
+            
+            curl_setopt($this->ch, CURLOPT_URL, $this->url."/".$this->token."/courses/program".$urlextend); 
+            curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+            $output = curl_exec($this->ch);
+            return $output;
+        }
+
+        // courses/program(/:year(/:program_id(/:semester)))
+
 		public function __call($func, $params=array()) {
 			$this->ch = curl_init();
 			$output = call_user_func_array(array($this,'_'.$func),$params);
@@ -182,8 +239,8 @@
 	$cool=$cl->get_all_programs();
 	$cool1=$cl->get_program_by_id(1);	
     $cool2=$cl->gel_all_teachers();
-    $cool3=$cl->get_teachers_by_department("Ð¡Ð¢");
-    $cool4=$cl->get_teachers_by_position("Ð³Ð»Ð°Ð²ÐµÐ½ Ð°ÑÐ¸ÑÑ‚ÐµÐ½Ñ‚");
+    $cool3=$cl->get_teachers_by_department("ÑÒ");
+    $cool4=$cl->get_teachers_by_position("ãëàâåí àñèñòåíò");
     $cool5=$cl->get_teacher_by_id(1);
     $cool6=$cl->get_all_semesters();
     $cool7=$cl->get_semesters_by_filter(array("season"=>"summer","start_year"=>2012,"end_year"=>2013));
@@ -192,5 +249,11 @@
 	$cool10=$cl->get_semesters_by_end_year(2013);
 	$cool11=$cl->get_all_courses();
 	$cool12=$cl->get_courses_by_id(4);
-	echo $cool12;
+    $cool13=$cl->get_courses_by_semester_year(0);
+    $cool14=$cl->get_courses_by_semester(1);
+    $cool15=$cl->get_courses_by_credits(">7");
+    $cool16=$cl->get_courses_by_group("Ä");
+    $cool17=$cl->get_program_by_filter(array("year"=>"0","program_id"=>9,"semester"=>1));
+    // "program_id"=>"1","semester"=>1
+	echo $cool17;
 ?>

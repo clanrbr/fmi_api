@@ -4,7 +4,7 @@ require  'Slim/Slim.php';
 require  'Redbeanphp/rb.php';
 \Slim\Slim::registerAutoloader();
 
-R::setup('mysql:host=localhost;dbname=testdb','root','');
+R::setup('mysql:host=localhost;dbname=testdb','root','123');
 R::freeze(true);
 
 
@@ -590,25 +590,27 @@ $app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function 
 		
 		$where_clause = preg_replace('/^ AND/', '', $where_clause);
 		
-		if ( strlen($where_clause)>0 ) {
+		// if ( strlen($where_clause)>0 ) {
+		if ( strlen($where_clause)>0 )
 			$where_clause = ' WHERE '.$where_clause;
-			try {
-				$program = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id $where_clause");
-				if ($program) {
-					$app->response()->header('Content-Type', 'application/json');
-					echo json_encode($program  , JSON_UNESCAPED_UNICODE );
-				}
-				else {
-					throw new Exception('Nothing was found',400);
-				}
+		
+		try {
+			$program = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id $where_clause");
+			if ($program) {
+				$app->response()->header('Content-Type', 'application/json');
+				echo json_encode($program  , JSON_UNESCAPED_UNICODE );
 			}
-			catch (Exception $e) {
-					  generateExceptionError($app,$e);
+			else {
+				throw new Exception('Nothing was found',400);
 			}
 		}
-		else {
-			generateCustomError($app,400,"Please specify.");
+		catch (Exception $e) {
+				  generateExceptionError($app,$e);
 		}
+		// }
+		// else {
+		// 	generateCustomError($app,400,"Please specify.");
+		// }
 	}
 	else {
 		generateCustomError($app,400,"Invalid Token");
