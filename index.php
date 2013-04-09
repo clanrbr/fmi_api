@@ -4,7 +4,7 @@ require  'Slim/Slim.php';
 require  'Redbeanphp/rb.php';
 \Slim\Slim::registerAutoloader();
 
-R::setup('mysql:host=localhost;dbname=testdb','root','123');
+R::setup('mysql:host=localhost;dbname=testdb','root','');
 R::freeze(true);
 
 
@@ -217,6 +217,28 @@ $app->get('/:token/teachers/position/:position', function ($token,$position) use
 	}
 });
 
+$app->get('/:token/teachers/course/:course_id', function ($token,$course_id) use ($app) {
+	if (checkToken($token)) {
+		try {
+			$escaped_course_id = mysql_real_escape_string($course_id);
+			$teachers = R::getAll("SELECT * FROM teachers LEFT JOIN courses_teachers on teachers.teacher_id=courses_teachers.teacher_id WHERE courses_teachers.course_id='$escaped_course_id'");
+			if ($teachers) {
+				$app->response()->header('Content-Type', 'application/json');
+				echo json_encode($teachers  , JSON_UNESCAPED_UNICODE );
+			}
+			else {
+				throw new Exception('Nothing was found',400);
+			}
+		}
+		catch (Exception $e) {
+			generateExceptionError($app,$e);
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
 $app->get('/:token/teacher/:id', function ($token,$id) use ($app) {
 	if (checkToken($token)) {
 		if ( preg_match('/^\d{1,}$/', $id) ) {
@@ -408,6 +430,15 @@ $app->get('/:token/courses', function ($token) use ($app) {
 		try {
 			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id");
 			if ($courses) {
+				$i=0;
+				while ($i<count($courses)) {
+					$course_id=$courses[$i]['course_id'];
+					$teachers = R::getAll("SELECT courses_teachers.teacher_id,teachers.teacher_name FROM courses_teachers LEFT JOIN teachers on courses_teachers.teacher_id=teachers.teacher_id WHERE courses_teachers.course_id=$course_id");
+					if ( $teachers ) {
+						$courses[$i]['teachers']=$teachers;
+					}
+					$i++;
+				}
 				$app->response()->header('Content-Type', 'application/json');
 				echo json_encode($courses  , JSON_UNESCAPED_UNICODE );
 			} 
@@ -431,6 +462,10 @@ $app->get('/:token/course/:id', function ($token,$id) use ($app) {
 				$escaped_id = mysql_real_escape_string($id);
 				$program = R::getRow("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.course_id = $escaped_id");
 				if ($program) {
+					$teachers = R::getAll("SELECT courses_teachers.teacher_id,teachers.teacher_name FROM courses_teachers LEFT JOIN teachers on courses_teachers.teacher_id=teachers.teacher_id WHERE courses_teachers.course_id=$escaped_id");
+					if ( $teachers ) {
+						$program['teachers']=$teachers;
+					}
 					$app->response()->header('Content-Type', 'application/json');
 					echo json_encode($program  , JSON_UNESCAPED_UNICODE );
 				}
@@ -458,6 +493,15 @@ $app->get('/:token/courses/year/:year', function ($token,$year) use ($app) {
 				$escaped_year=mysql_real_escape_string($year);
 				$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.year=$escaped_year");
 				if ($courses) {
+					$i=0;
+					while ($i<count($courses)) {
+						$course_id=$courses[$i]['course_id'];
+						$teachers = R::getAll("SELECT courses_teachers.teacher_id,teachers.teacher_name FROM courses_teachers LEFT JOIN teachers on courses_teachers.teacher_id=teachers.teacher_id WHERE courses_teachers.course_id=$course_id");
+						if ( $teachers ) {
+							$courses[$i]['teachers']=$teachers;
+						}
+						$i++;
+					}
 					$app->response()->header('Content-Type', 'application/json');
 					echo json_encode($courses  , JSON_UNESCAPED_UNICODE );
 				}
@@ -485,6 +529,15 @@ $app->get('/:token/courses/semester/:semester', function ($token,$semester) use 
 				$escaped_semester=mysql_real_escape_string($semester);
 				$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.semester=$escaped_semester");
 				if ($courses) {
+					$i=0;
+					while ($i<count($courses)) {
+						$course_id=$courses[$i]['course_id'];
+						$teachers = R::getAll("SELECT courses_teachers.teacher_id,teachers.teacher_name FROM courses_teachers LEFT JOIN teachers on courses_teachers.teacher_id=teachers.teacher_id WHERE courses_teachers.course_id=$course_id");
+						if ( $teachers ) {
+							$courses[$i]['teachers']=$teachers;
+						}
+						$i++;
+					}
 					$app->response()->header('Content-Type', 'application/json');
 					echo json_encode($courses  , JSON_UNESCAPED_UNICODE );
 				}
@@ -533,6 +586,15 @@ $app->get('/:token/courses/credits/:credits(/:program)', function ($token,$credi
 		}
 		
 		if ($courses) {
+			$i=0;
+			while ($i<count($courses)) {
+				$course_id=$courses[$i]['course_id'];
+				$teachers = R::getAll("SELECT courses_teachers.teacher_id,teachers.teacher_name FROM courses_teachers LEFT JOIN teachers on courses_teachers.teacher_id=teachers.teacher_id WHERE courses_teachers.course_id=$course_id");
+				if ( $teachers ) {
+					$courses[$i]['teachers']=$teachers;
+				}
+				$i++;
+			}
 			$app->response()->header('Content-Type', 'application/json');
 			echo json_encode($courses  , JSON_UNESCAPED_UNICODE );
 		}
@@ -552,6 +614,15 @@ $app->get('/:token/courses/group/:group', function ($token,$group) use ($app,$gr
 				$escaped_group=mysql_real_escape_string($groupMap[$group]);
 				$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id WHERE courses.group ='$escaped_group'");
 				if ($courses) {
+					$i=0;
+					while ($i<count($courses)) {
+						$course_id=$courses[$i]['course_id'];
+						$teachers = R::getAll("SELECT courses_teachers.teacher_id,teachers.teacher_name FROM courses_teachers LEFT JOIN teachers on courses_teachers.teacher_id=teachers.teacher_id WHERE courses_teachers.course_id=$course_id");
+						if ( $teachers ) {
+							$courses[$i]['teachers']=$teachers;
+						}
+						$i++;
+					}
 					$app->response()->header('Content-Type', 'application/json');
 					echo json_encode($courses  , JSON_UNESCAPED_UNICODE );
 				}
@@ -590,39 +661,39 @@ $app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function 
 		
 		$where_clause = preg_replace('/^ AND/', '', $where_clause);
 		
-		// if ( strlen($where_clause)>0 ) {
-		if ( strlen($where_clause)>0 )
+		if ( strlen($where_clause)>0 ) {
 			$where_clause = ' WHERE '.$where_clause;
-		
-		try {
-			$program = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id $where_clause");
-			if ($program) {
-				$app->response()->header('Content-Type', 'application/json');
-				echo json_encode($program  , JSON_UNESCAPED_UNICODE );
+			try {
+				$program = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id $where_clause");
+				if ($program) {
+					$i=0;
+					while ($i<count($program)) {
+						$course_id=$program[$i]['course_id'];
+						$teachers = R::getAll("SELECT courses_teachers.teacher_id,teachers.teacher_name FROM courses_teachers LEFT JOIN teachers on courses_teachers.teacher_id=teachers.teacher_id WHERE courses_teachers.course_id=$course_id");
+						if ( $teachers ) {
+							$program[$i]['teachers']=$teachers;
+						}
+						$i++;
+					}
+					$app->response()->header('Content-Type', 'application/json');
+					echo json_encode($program  , JSON_UNESCAPED_UNICODE );
+				}
+				else {
+					throw new Exception('Nothing was found',400);
+				}
 			}
-			else {
-				throw new Exception('Nothing was found',400);
+			catch (Exception $e) {
+					  generateExceptionError($app,$e);
 			}
 		}
-		catch (Exception $e) {
-				  generateExceptionError($app,$e);
+		else {
+			generateCustomError($app,400,"Please specify.");
 		}
-		// }
-		// else {
-		// 	generateCustomError($app,400,"Please specify.");
-		// }
 	}
 	else {
 		generateCustomError($app,400,"Invalid Token");
 	}
 });
-
-// http://alexbilbie.com/2013/02/securing-your-api-with-oauth-2/
-// http://help.slimframework.com/discussions/questions/230-can-i-have-a-get-request-with-variable-number-of-parameters-in-the-url
-// http://nesbot.com/2012/6/18/slim-wildcard-routes-via-route-middleware
-
-//da
-// http://linkey.blogs.lincoln.ac.uk/tag/access-token/
 
 R::close();
 $app->run();

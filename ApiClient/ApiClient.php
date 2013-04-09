@@ -54,6 +54,17 @@
             return $data;
         }
         
+		private function _get_teachers_by_course($course_id="") {
+			$data=[];
+			if ( empty($course_id) ) {
+				$data['error']="Missing parameter course_id in get_teachers_by_course";
+				return $data;
+			}
+
+            $data['data']=$this->url."/".$this->token."/teachers/course/".$course_id;
+            return $data;
+		}
+		
         private function _get_teacher_by_id($id=0) {
 			$data=[];
 			if ( empty($id) ) {
@@ -133,7 +144,7 @@
 		
 		private function _get_courses_by_semester_year($year=0) {
 			$data=[];
-            $data['data']=$this->url."/".$this->token."/courses/year/".$year); 
+            $data['data']=$this->url."/".$this->token."/courses/year/".$year; 
             return $data;
         }
 
@@ -202,6 +213,7 @@
     $cool2=$cl->gel_all_teachers();
     $cool3=$cl->get_teachers_by_department("СТ");
     $cool4=$cl->get_teachers_by_position("главен асистент");
+	$cool4a=$cl->get_teachers_by_course(4);
     $cool5=$cl->get_teacher_by_id(1);
     $cool6=$cl->get_all_semesters();
     $cool7=$cl->get_semesters_by_filter(array("season"=>"summer","start_year"=>2012,"end_year"=>2013));
@@ -213,7 +225,7 @@
 	$cool13=$cl->get_courses_by_semester_year(0);
     $cool14=$cl->get_courses_by_semester(1);
     $cool15=$cl->get_courses_by_credits(">7");
-    $cool16=$cl->get_courses_by_group("Ä");
+    $cool16=$cl->get_courses_by_group("СТ");
     $cool17=$cl->get_program_by_filter(array("year"=>"0","program_id"=>9,"semester"=>1));
-	echo $cool12;
+	echo $cool17;
 ?>
