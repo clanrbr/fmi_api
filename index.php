@@ -2,9 +2,10 @@
 
 require  'Slim/Slim.php';
 require  'Redbeanphp/rb.php';
+require_once 'conf.php';
 \Slim\Slim::registerAutoloader();
 
-R::setup('mysql:host=localhost;dbname=testdb','root','');
+R::setup('mysql:host='.$conf['host'].';dbname='.$conf['dbname'],$conf['dbuser'],$conf['dbpassword']);
 R::freeze(true);
 
 
