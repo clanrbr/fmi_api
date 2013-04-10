@@ -2,6 +2,8 @@
 
 require  'Slim/Slim.php';
 require  'Redbeanphp/rb.php';
+require  'Token/Token.php';
+
 require_once 'conf.php';
 \Slim\Slim::registerAutoloader();
 
@@ -27,6 +29,7 @@ $groupMap = array(
 );
 
 $app = new \Slim\Slim();
+$tkn_ = new ApiToken();
 
 function generateExceptionError($app,$exception) {
 	$error['error']=$exception->getMessage();
@@ -42,47 +45,7 @@ function generateCustomError($app,$code,$message) {
 	echo json_encode($error  , JSON_UNESCAPED_UNICODE );
 };
 
-function token() {
-	$length=17;
-    $characters = array(
-        "A","B","C","D","E","F","G","H","J","K","L","M",
-        "N","P","Q","R","S","T","U","V","W","X","Y","Z",
-        "a","b","c","d","e","f","g","h","i","j","k","m",
-        "n","o","p","q","r","s","t","u","v","w","x","y","z",
-        "1","2","3","4","5","6","7","8","9");
-    if ($length < 0 || $length > count($characters)) return null;
-    shuffle($characters);
-    return implode("", array_slice($characters, 0, $length));
-}
-
-function generateToken($token_,$ip) {
-	do {
-		$token_ = token();
-		$check = R::findOne('tokens',' token = ? ',array($token_));
-	} while ( isset($check) and $check.length > 0  );
-	
-	if (isset($token_)) {
-		$escaped_ip=mysql_real_escape_string($ip);
-		$thing = R::dispense("tokens");
-		$thing->token = "$token_";
-		$thing->ip = "$escaped_ip";
-		$id = R::store($thing);
-	}
-	return $token_;
-}
-
-function checkToken ($token) {
-	$escaped_token=mysql_real_escape_string($token);
-	$thing = R::findOne("tokens", 'token = ?', array($escaped_token));
-	if (isset($thing)){
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-$app->get('/register_token', function () use ($app) {
+$app->get('/register_token', function () use ($app,$tkn_) {
 		$token='';
 		$ip_address = "";
 		if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARTDED_FOR'] != '') {
@@ -91,7 +54,7 @@ $app->get('/register_token', function () use ($app) {
 		else {
 			$ip_address = $_SERVER['REMOTE_ADDR'];
 		}
-		$token=generateToken($token,$ip_address);
+		$token=$tkn_->generateToken($token,$ip_address);
 		if (isset($token)) {
 			$generatedToken['token']=$token;
 			$app->response()->header('Content-Type', 'application/json');
@@ -104,8 +67,8 @@ $app->get('/register_token', function () use ($app) {
 		}
 });
 
-$app->get('/:token/programs', function ($token) use ($app) {
-	if (checkToken($token))
+$app->get('/:token/programs', function ($token) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token))
 	  {
 		try {
 			$programs=R::getAll('SELECT * FROM bachelor_programmes');
@@ -126,8 +89,8 @@ $app->get('/:token/programs', function ($token) use ($app) {
 	  }
 });
 
-$app->get('/:token/program/:id', function ($token,$id) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/program/:id', function ($token,$id) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^\d{1,}$/', $id) ) {
 			try {
 				$escaped_id = mysql_real_escape_string($id);
@@ -153,8 +116,8 @@ $app->get('/:token/program/:id', function ($token,$id) use ($app) {
 	}
 });
 
-$app->get('/:token/teachers', function ($token) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/teachers', function ($token) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$teachers = R::getAll("SELECT * FROM teachers");
 			if ($teachers) {
@@ -174,8 +137,8 @@ $app->get('/:token/teachers', function ($token) use ($app) {
 	}
 });
 
-$app->get('/:token/teachers/department/:department', function ($token,$department) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/teachers/department/:department', function ($token,$department) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$escaped_department = mysql_real_escape_string($department);
 			$teachers = R::getAll("SELECT * FROM teachers WHERE department='$escaped_department'");
@@ -196,8 +159,8 @@ $app->get('/:token/teachers/department/:department', function ($token,$departmen
 	}
 });
 
-$app->get('/:token/teachers/position/:position', function ($token,$position) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/teachers/position/:position', function ($token,$position) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$escaped_position = mysql_real_escape_string($position);
 			$teachers = R::getAll("SELECT * FROM teachers WHERE teacher_position='$escaped_position'");
@@ -218,8 +181,8 @@ $app->get('/:token/teachers/position/:position', function ($token,$position) use
 	}
 });
 
-$app->get('/:token/teachers/course/:course_id', function ($token,$course_id) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/teachers/course/:course_id', function ($token,$course_id) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$escaped_course_id = mysql_real_escape_string($course_id);
 			$teachers = R::getAll("SELECT * FROM teachers LEFT JOIN courses_teachers on teachers.teacher_id=courses_teachers.teacher_id WHERE courses_teachers.course_id='$escaped_course_id'");
@@ -240,8 +203,8 @@ $app->get('/:token/teachers/course/:course_id', function ($token,$course_id) use
 	}
 });
 
-$app->get('/:token/teacher/:id', function ($token,$id) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/teacher/:id', function ($token,$id) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^\d{1,}$/', $id) ) {
 			try {
 				$escaped_id = mysql_real_escape_string($id);
@@ -268,8 +231,8 @@ $app->get('/:token/teacher/:id', function ($token,$id) use ($app) {
 	}
 });
 
-$app->get('/:token/semesters', function ($token) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/semesters', function ($token) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$smesters = R::getAll("SELECT * FROM semesters");
 			if ($smesters) {
@@ -289,8 +252,8 @@ $app->get('/:token/semesters', function ($token) use ($app) {
 	}
 });
 
-$app->get('/:token/semester_filter(/:year(/:start_date(/:end_date)))', function ($token,$season="",$start_date=0,$end_date=0) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/semester_filter(/:year(/:start_date(/:end_date)))', function ($token,$season="",$start_date=0,$end_date=0) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
         $where_clause="";
         if ( !empty($season) ) {
             $escaped_season=mysql_real_escape_string($season);
@@ -332,8 +295,8 @@ $app->get('/:token/semester_filter(/:year(/:start_date(/:end_date)))', function 
 	}
 });
 
-$app->get('/:token/semesters/season/:season', function ($token,$season) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/semesters/season/:season', function ($token,$season) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$escaped_season = mysql_real_escape_string($season);
 			$smesters = R::getAll("SELECT * FROM semesters WHERE semester_season LIKE '$escaped_season'  ");
@@ -354,8 +317,8 @@ $app->get('/:token/semesters/season/:season', function ($token,$season) use ($ap
 	}
 });
 
-$app->get('/:token/semesters/start/:year_start', function ($token,$year_start) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/semesters/start/:year_start', function ($token,$year_start) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$escaped_year_start = mysql_real_escape_string($year_start);
 			$smesters = R::getAll("SELECT * FROM semesters WHERE season_start_year= $escaped_year_start");
@@ -376,8 +339,8 @@ $app->get('/:token/semesters/start/:year_start', function ($token,$year_start) u
 	}
 });
 
-$app->get('/:token/semesters/end/:year_end', function ($token,$year_end) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/semesters/end/:year_end', function ($token,$year_end) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$escaped_year_end = mysql_real_escape_string($year_end);
 			$smesters = R::getAll("SELECT * FROM semesters WHERE season_end_year= $escaped_year_end");
@@ -398,8 +361,8 @@ $app->get('/:token/semesters/end/:year_end', function ($token,$year_end) use ($a
 	}
 });
 
-$app->get('/:token/semester/:id', function ($token,$id) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/semester/:id', function ($token,$id) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^\d{1,}$/', $id) ) {
 			try {
 				$escaped_id = mysql_real_escape_string($id);
@@ -426,8 +389,8 @@ $app->get('/:token/semester/:id', function ($token,$id) use ($app) {
 	}
 });
 
-$app->get('/:token/students', function ($token) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/students', function ($token) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$students = R::getAll("SELECT * FROM students");
 			if ($students) {
@@ -447,8 +410,8 @@ $app->get('/:token/students', function ($token) use ($app) {
 	}
 });
 
-$app->get('/:token/students/fn/:fn', function ($token,$fn) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/students/fn/:fn', function ($token,$fn) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^\d{4,}$/', $fn) ) {
 			try {
 				$escaped_fn = mysql_real_escape_string($fn);
@@ -474,8 +437,8 @@ $app->get('/:token/students/fn/:fn', function ($token,$fn) use ($app) {
 	}
 });
 
-$app->get('/:token/students_filter(/:course_id(/:year))', function ($token,$course_id=0,$year=0) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/students_filter(/:course_id(/:year))', function ($token,$course_id=0,$year=0) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		$where_clause="";
 		if ( $course_id>0 ) {
 			$escaped_course_id=mysql_real_escape_string($course_id);
@@ -513,8 +476,8 @@ $app->get('/:token/students_filter(/:course_id(/:year))', function ($token,$cour
 	}
 });
 
-$app->get('/:token/student/:id', function ($token,$id) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/student/:id', function ($token,$id) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^\d{1,}$/', $id) ) {
 			try {
 				$escaped_id = mysql_real_escape_string($id);
@@ -540,8 +503,8 @@ $app->get('/:token/student/:id', function ($token,$id) use ($app) {
 	}
 });
 
-$app->get('/:token/courses', function ($token) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/courses', function ($token) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		try {
 			$courses = R::getAll("SELECT courses.course_id, courses.course_name, courses.group, courses.credits, courses.semester, bachelor_programmes.programme_name, courses.year FROM courses LEFT JOIN bachelor_programmes on courses.programme_id=bachelor_programmes.programme_id");
 			if ($courses) {
@@ -570,8 +533,8 @@ $app->get('/:token/courses', function ($token) use ($app) {
 	}
 });
 
-$app->get('/:token/course/:id', function ($token,$id) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/course/:id', function ($token,$id) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^\d{1,}$/', $id) ) {
 			try {
 				$escaped_id = mysql_real_escape_string($id);
@@ -601,8 +564,8 @@ $app->get('/:token/course/:id', function ($token,$id) use ($app) {
 	}
 });
 
-$app->get('/:token/courses/year/:year', function ($token,$year) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/courses/year/:year', function ($token,$year) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^[0-4]$/', $year) ) {
 			try {
 				$escaped_year=mysql_real_escape_string($year);
@@ -637,8 +600,8 @@ $app->get('/:token/courses/year/:year', function ($token,$year) use ($app) {
 	}
 });
 
-$app->get('/:token/courses/semester/:semester', function ($token,$semester) use ($app) {
-	if (checkToken($token)) {
+$app->get('/:token/courses/semester/:semester', function ($token,$semester) use ($app,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( preg_match('/^\d{1,}$/', $semester) ) {
 			try {
 				$escaped_semester=mysql_real_escape_string($semester);
@@ -673,8 +636,8 @@ $app->get('/:token/courses/semester/:semester', function ($token,$semester) use 
 	}
 });
 
-$app->get('/:token/courses/credits/:credits(/:program)', function ($token,$credits,$program=0) use ($app,$groupMap) {
-	if (checkToken($token)) {
+$app->get('/:token/courses/credits/:credits(/:program)', function ($token,$credits,$program=0) use ($app,$groupMap,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		$courses="";
 		$program_where="";
 		if ( $program>0 ) {
@@ -722,8 +685,8 @@ $app->get('/:token/courses/credits/:credits(/:program)', function ($token,$credi
 	}
 });
 
-$app->get('/:token/courses/group/:group', function ($token,$group) use ($app,$groupMap) {
-	if (checkToken($token)) {
+$app->get('/:token/courses/group/:group', function ($token,$group) use ($app,$groupMap,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		if ( array_key_exists($group,$groupMap) ) {
 			try {
 				$escaped_group=mysql_real_escape_string($groupMap[$group]);
@@ -758,8 +721,8 @@ $app->get('/:token/courses/group/:group', function ($token,$group) use ($app,$gr
 	}
 });
 
-$app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function ($token,$year=0,$program_id=0,$semester_id=0) use ($app,$groupMap) {
-	if (checkToken($token)) {
+$app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function ($token,$year=0,$program_id=0,$semester_id=0) use ($app,$groupMap,$tkn_) {
+	if ($tkn_->checkToken($token)) {
 		$where_clause="";
 		if ( $year>0 ) {
 			$escaped_year=mysql_real_escape_string($year);
