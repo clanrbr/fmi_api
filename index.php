@@ -267,7 +267,7 @@ $app->get('/:token/teacher/:id', function ($token,$id) use ($app) {
 	}
 });
 
-$app->get('/:token/semesters', function ($token,$season='',$start_date=0,$end_date=0) use ($app) {
+$app->get('/:token/semesters', function ($token) use ($app) {
 	if (checkToken($token)) {
 		try {
 			$smesters = R::getAll("SELECT * FROM semesters");
@@ -419,6 +419,120 @@ $app->get('/:token/semester/:id', function ($token,$id) use ($app) {
 			generateCustomError($app,400,"ID is missing");
 		}
 			
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/students', function ($token) use ($app) {
+	if (checkToken($token)) {
+		try {
+			$students = R::getAll("SELECT * FROM students");
+			if ($students) {
+				$app->response()->header('Content-Type', 'application/json');
+				echo json_encode($students  , JSON_UNESCAPED_UNICODE );
+			}
+			else {
+				throw new Exception('Nothing was found',400);
+			}
+		}
+		catch (Exception $e) {
+			generateExceptionError($app,$e);
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/students/fn/:fn', function ($token,$fn) use ($app) {
+	if (checkToken($token)) {
+		if ( preg_match('/^\d{4,}$/', $fn) ) {
+			try {
+				$escaped_fn = mysql_real_escape_string($fn);
+				$students = R::getAll("SELECT * FROM students WHERE fn=$escaped_fn");
+				if ($students) {
+					$app->response()->header('Content-Type', 'application/json');
+					echo json_encode($students  , JSON_UNESCAPED_UNICODE );
+				}
+				else {
+					throw new Exception('Nothing was found',400);
+				}
+			}
+			catch (Exception $e) {
+				generateExceptionError($app,$e);
+			}
+		}
+		else {
+			generateCustomError($app,400,"FN is missing");
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/students_filter(/:course_id(/:year))', function ($token,$course_id=0,$year=0) use ($app) {
+	if (checkToken($token)) {
+		$where_clause="";
+		if ( $course_id>0 ) {
+			$escaped_course_id=mysql_real_escape_string($course_id);
+			$where_clause.=" AND course=$escaped_course_id";
+		}
+		if ( $year>0 ) {
+			$escaped_year=mysql_real_escape_string($year);
+			$where_clause.=" AND year=$escaped_year";
+		}
+		
+		$where_clause = preg_replace('/^ AND/', '', $where_clause);
+		
+		if ( strlen($where_clause)>0 ) {
+			$where_clause = ' WHERE '.$where_clause;
+			try {
+				$students = R::getAll("SELECT * FROM students $where_clause");
+				if ($students) {
+					$app->response()->header('Content-Type', 'application/json');
+					echo json_encode($students  , JSON_UNESCAPED_UNICODE );
+				}
+				else {
+					throw new Exception('Nothing was found',400);
+				}
+			}
+			catch (Exception $e) {
+				generateExceptionError($app,$e);
+			}
+		}
+		else {
+			generateCustomError($app,400,"Please specify.");
+		}
+	}
+	else {
+		generateCustomError($app,400,"Invalid Token");
+	}
+});
+
+$app->get('/:token/student/:id', function ($token,$id) use ($app) {
+	if (checkToken($token)) {
+		if ( preg_match('/^\d{1,}$/', $id) ) {
+			try {
+				$escaped_id = mysql_real_escape_string($id);
+				$students = R::getAll("SELECT * FROM students WHERE id=$escaped_id");
+				if ($students) {
+					$app->response()->header('Content-Type', 'application/json');
+					echo json_encode($students  , JSON_UNESCAPED_UNICODE );
+				}
+				else {
+					throw new Exception('Nothing was found',400);
+				}
+			}
+			catch (Exception $e) {
+				generateExceptionError($app,$e);
+			}
+		}
+		else {
+			generateCustomError($app,400,"ID is missing");
+		}
 	}
 	else {
 		generateCustomError($app,400,"Invalid Token");
