@@ -275,7 +275,7 @@
 	$cool4a=$cl->get_teachers_by_course(4);
     $cool5=$cl->get_teacher_by_id(1);
     $cool6=$cl->get_all_semesters();
-    $cool7=$cl->get_semesters_by_filter(array("season"=>"summer","start_year"=>2012,"end_year"=>2013));
+    $cool7=$cl->get_semesters_by_filter(array("season"=>"summer","start_year"=>2012));
 	$cool8=$cl->get_semesters_by_season("summer");
 	$cool9=$cl->get_semesters_by_start_year(2012);
 	$cool10=$cl->get_semesters_by_end_year(2013);
