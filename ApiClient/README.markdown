@@ -33,7 +33,7 @@
 * get_courses_by_semester
     * Приема параметър semester -int
 * get_courses_by_credits
-    * Приема параметър credits -int,double
+    * Приема параметър credits -int,double , program_id - специалност id -int
         * Ако параметърът credits може да започва с ">", "<" или самото число 
 * get_courses_by_group
     * Приема параметър group -string
@@ -238,12 +238,12 @@ semester_year=0 - подходящ за всички години.
 `'error'="Nothing was found" и Status code 400`.
 
 ###get_courses_by_credits
-Приема задължителен параметър credits -int,double,string.
+Приема задължителен параметър credits -int,double,string. , program_id -int - незадължителен
 Ако искате да видите предметите , които са повече от 7 кредита , то
 credits=">7". За по-малките credits="<7". За равни на 7 credits=7 или 7.0.
 Използване :
 
-    $apicl->get_courses_by_credits(">7");
+    $apicl->get_courses_by_credits(">7",9);
 
 Ако не се въведе credits извежда грешка  с ключ `'error'`
    
