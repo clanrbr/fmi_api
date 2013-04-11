@@ -87,19 +87,13 @@
 			$urlextend="";
 			
 			if ( !(isset($params['season'])) ) {
-			   $data['error']="Missing parameter array with key season in get_semesters_by_filter";
-                           return $data;	
+                $data['error']="Missing parameter array with key season in get_semesters_by_filter";
+                return $data;	
 			}
 			
 			$urlextend.="/".$params['season'];
-			
 			if ( isset($params['start_year'] ) )
 			  $urlextend.="/".$params['start_year'];
-            
-			if (empty($urlextend)) {
-				$data['error']="Missing parameters in get_semesters_by_filter";
-				return $data;
-			}
 			
             $data['data']=$this->url."/".$this->token."/semester_filter".$urlextend;
             return $data;
@@ -167,13 +161,19 @@
             return $data;
         }
 
-        private function _get_courses_by_credits($credits="") {
+        private function _get_courses_by_credits($credits="",$specialty=0) {
 			$data=[];
             if ( empty($credits) ) {
                  $data['error']="Missing parameter credits in get_courses_by_credits";
                 return $data;
             }
-            $data['data']=$this->url."/".$this->token."/courses/credits/".$credits; 
+            $urlindex="";
+            
+            if ($specialty>0) {
+                $urlindex="/".$specialty;
+            }
+            
+            $data['data']=$this->url."/".$this->token."/courses/credits/".$credits.$urlindex; 
             return $data;
         }
 
@@ -190,17 +190,16 @@
         private function _get_program_by_filter($filter=array()) {
 			$data=[];
             $urlextend="";
-            if ( isset($filter['year']) )
-              $urlextend.="/".$filter['year'];
+            if (!(isset($filter['year']))) {
+                $data['error']="Missing parameter array with key season in get_program_by_filter";
+                return $data
+            }
+            
+            $urlextend.="/".$filter['year'];
             if ( isset($filter['program_id'] ) )
               $urlextend.="/".$filter['program_id'];
             if ( isset($filter['semester']) )
               $urlextend.="/".$filter['semester'];
-            
-			if (empty($urlextend)) {
-				$data['error']="Missing parameters in get_program_by_filter";
-				return $data;
-			}
 			
             $data['data']=$this->url."/".$this->token."/courses/program".$urlextend; 
             return $data;
@@ -283,7 +282,7 @@
 	$cool12=$cl->get_courses_by_id(4);
 	$cool13=$cl->get_courses_by_semester_year(0);
     $cool14=$cl->get_courses_by_semester(1);
-    $cool15=$cl->get_courses_by_credits(">7");
+    $cool15=$cl->get_courses_by_credits(">7",9);
     $cool16=$cl->get_courses_by_group("Ст");
     $cool17=$cl->get_program_by_filter(array("year"=>"0","program_id"=>9,"semester"=>1));
 	$cool18=$cl->get_all_students();

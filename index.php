@@ -252,7 +252,7 @@ $app->get('/:token/semesters', function ($token) use ($app,$tkn_) {
 	}
 });
 
-$app->get('/:token/semester_filter(/:year(/:start_date(/:end_date)))', function ($token,$season="",$start_date=0,$end_date=0) use ($app,$tkn_) {
+$app->get('/:token/semester_filter/:season(/:start_date)', function ($token,$season="",$start_date=0) use ($app,$tkn_) {
 	if ($tkn_->checkToken($token)) {
         $where_clause="";
         if ( !empty($season) ) {
@@ -263,13 +263,9 @@ $app->get('/:token/semester_filter(/:year(/:start_date(/:end_date)))', function 
             $escaped_start_date=mysql_real_escape_string($start_date);
             $where_clause.=" AND season_start_year=$escaped_start_date";
         }
-        if ( $end_date>0 ) {
-            $escaped_end_date=mysql_real_escape_string($end_date);
-            $where_clause.=" AND season_end_year=$escaped_end_date";
-        }
 
         $where_clause = preg_replace('/^ AND/', '', $where_clause);
-        if ( strlen($where_clause)>0 ) {
+        if ( strlen($where_clause)=0 ) {
             $where_clause = " WHERE ".$where_clause;
             try {
                 $escaped_season = mysql_real_escape_string($season);
@@ -437,7 +433,7 @@ $app->get('/:token/students/fn/:fn', function ($token,$fn) use ($app,$tkn_) {
 	}
 });
 
-$app->get('/:token/students_filter(/:course_id(/:year))', function ($token,$course_id=0,$year=0) use ($app,$tkn_) {
+$app->get('/:token/students_filter/:course_id(/:year)', function ($token,$course_id=0,$year=0) use ($app,$tkn_) {
 	if ($tkn_->checkToken($token)) {
 		$where_clause="";
 		if ( $course_id>0 ) {
@@ -721,7 +717,7 @@ $app->get('/:token/courses/group/:group', function ($token,$group) use ($app,$gr
 	}
 });
 
-$app->get('/:token/courses/program(/:year(/:program_id(/:semester)))', function ($token,$year=0,$program_id=0,$semester_id=0) use ($app,$groupMap,$tkn_) {
+$app->get('/:token/courses/program/:year(/:program_id(/:semester))', function ($token,$year=0,$program_id=0,$semester_id=0) use ($app,$groupMap,$tkn_) {
 	if ($tkn_->checkToken($token)) {
 		$where_clause="";
 		if ( $year>0 ) {

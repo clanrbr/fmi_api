@@ -1,130 +1,136 @@
-# Slim Framework
+# Описание на самото АPI
 
-[![Build Status](https://secure.travis-ci.org/codeguy/Slim.png)](http://travis-ci.org/codeguy/Slim)
+За предпочитане ползвайте 
 
-Slim is a PHP micro framework that helps you quickly write simple yet powerful web applications and APIs.
-Slim is easy to use for both beginners and professionals. Slim favors cleanliness over terseness and common cases
-over edge cases. Its interface is simple, intuitive, and extensively documented — both online and in the code itself.
-Thank you for choosing the Slim Framework for your next project. I think you're going to love it.
+`require_once /ApiClient/ApiClient.php`
 
-## Features
+## Рест заявките
 
-* Powerful router
-    * Standard and custom HTTP methods
-    * Route parameters with wildcards and conditions
-    * Route redirect, halt, and pass
-    * Route middleware
-* Template rendering with custom views
-* Flash messages
-* Secure cookies with AES-256 encryption
-* HTTP caching
-* Logging with custom log writers
-* Error handling and debugging
-* Middleware and hook architecture
-* Simple configuration
+При при грешен или липсващ token ще върне json response:
 
-## Getting Started
+    'error'=>'Invalid Token'
+    Status Code:400
+    
+Ако нищо не бъде намерено ще изведе :
 
-### Install
+    'error'=>"Nothing was found"
+    Status Code:400
 
-You may install the Slim Framework with Composer (recommended) or manually.
+Легенда:
+/:param - параметър - променлива
+/programs - задължителен параметър
+(/:params) - не е задължителен параметър - променлива
 
-[Read how to install Slim](http://docs.slimframework.com/pages/getting-started-install)
+### /:token/programs
+Извежда всички бакалавърски специалности
 
-### System Requirements
+### /:token/program/:id
+Извежда специалност според id. При некоректно зададено id дава 
+    
+    'error' =>"ID is missing";
+    Status Code:400
 
-You need **PHP >= 5.3.0**. If you use encrypted cookies, you'll also need the `mcrypt` extension.
+### /:token/teachers
+Извежда всички преподаватели.
 
-### Hello World Tutorial
+### /:token/teachers
+Извежда всички преподаватели.
 
-Instantiate a Slim application:
+### /:token/teachers/department/:department
+Извежда преподавателите спрямо отдел.
 
-    $app = new \Slim\Slim();
+### /:token/teachers/position/:position
+Извежда преподавателите спрямо заемащата позиция в университета.
 
-Define a HTTP GET route:
+### /:token/teachers/course/:course_id
+Извежда преподавателите спрямо учебния предмет.
 
-    $app->get('/hello/:name', function ($name) {
-        echo "Hello, $name";
-    });
+### /:token/teacher/:id
+Извежда преподават спрямо id. При некоректно зададено id дава 
+    
+    'error' =>"ID is missing";
+    Status Code:400
 
-Run the Slim application:
+### /:token/semesters
+Извежда всички семестри.
 
-    $app->run();
+### /:token/semester_filter/:season(/:start_date)
+Извежда семестрите спрямо филтър.
+season - за кой месец се отнася предметът.
+start_date - година на започване на семестъра.
+Ако не е зададен season ще изведе грешка `'error'=>"Please specify."`.
 
-### Setup your web server
+### /:token/semesters/season/:season
+Извежда семестрите спрямо сезона. 
+Възможни стойности "summer","winter"
 
-#### Apache
+### /:token/semesters/start/:year_start
+Извежда всички семестри които запозват :year_start година.
 
-Ensure the `.htaccess` and `index.php` files are in the same public-accessible directory. The `.htaccess` file
-should contain this code:
+### /:token/semesters/end/:year_end
+Извежда всички семестри които приключват :year_end година.
 
-    RewriteEngine On
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [QSA,L]
+### /:token/semester/:id
+Извежда семестр по ID. При некоректно зададено id дава 
+    
+    'error' =>"ID is missing";
+    Status Code:400
 
-#### Nginx
+### /:token/students
+Извежда всички студенти.
 
-Your nginx configuration file should contain this code (along with other settings you may need) in your `location` block:
+### /:token/students/fn/:fn
+Извежда студент спрямо факултетен номер.
 
-    try_files $uri $uri/ /index.php;
+### /:token/students_filter/:course_id(/:year)
+Извежда студент спрямо course_id и година.
+Ако не се въведе course_id - ще изведе грешка `'error'=>"Please specify."`.
 
-This assumes that Slim's `index.php` is in the root folder of your project (www root).
+### /:token/student/:id
+Извежда студент спрямо ID.При некоректно зададено id дава:
+    
+    'error' =>"ID is missing";
+    Status Code:400
 
-#### lighttpd ####
+### /:token/courses
+Извежда всички учебни предмети.
 
-Your lighttpd configuration file should contain this code (along with other settings you may need). This code requires
-lighttpd >= 1.4.24.
+### /:token/course/:id
+Извежда учебен предмет спрямо ID.При некоректно зададено id дава:
+    
+    'error' =>"ID is missing";
+    Status Code:400
 
-    url.rewrite-if-not-file = ("(.*)" => "/index.php/$0")
 
-This assumes that Slim's `index.php` is in the root folder of your project (www root).
+### /:token/courses/year/:year
+Извежда всички учебни предмети за :year година.
+:year - 0-4 , 0 - за всички години , 1 - за първата , 4 - за последната.
 
-## Documentation
+### /:token/courses/semester/:semester_id
+Извежда всички учебни предмети за :semester_id семестър.
 
-<http://docs.slimframework.com/>
+### /:token/courses/credits/:credits(/:program)
+Извежда всички учебни предмети по :credits и специалност(незадължителен).
+:credits - >7 - по големите от 7 , <7 - по-малките от 7 , 7 или 7.0 - точно 7 кредита.
 
-## How to Contribute
+## /:token/courses/group/:group
+Извежда всички учебни предмети по група.
+Всички групи :
+   
+    "Д" => "DID",
+	"Др." => "OTHR",
+	"КП" => "CSP" /*ComputerScience - Practicum*/,
+	"М" => "MAT",
+	"ОКН" => "CSF" /*CS Fundamentals*/,
+	"ПМ" => "APM" /*APPLIED MATH*/,
+	"С" => "SEM" /*Seminars*/,
+	"Ст" => "STAT" /*Statistics*/,
+	"Х" => "HUM" /*Humanitarian*/,
+	"ЯКН" => "CSC" /*CS Core*/,
+	"И" => "INF" /*informatics*/,
+	"ПМ / Ст" => array("APM", "STAT"), /*wtf fmi*/
+	"ПМ/Ст" => array("APM", "STAT"), /*wtf fmi x2*/
+	"ОКН/Ст" => array("CSF", "STAT") /*wtf fmi x3*/
 
-### Pull Requests
-
-1. Fork the Slim Framework repository
-2. Create a new branch for each feature or improvement
-3. Send a pull request from each feature branch to the **develop** branch
-
-It is very important to separate new features or improvements into separate feature branches, and to send a pull
-request for each branch. This allows me to review and pull in new features or improvements individually.
-
-### Style Guide
-
-All pull requests must adhere to the [PSR-2](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md) standard.
-
-### Unit Testing
-
-All pull requests must be accompanied by passing unit tests and complete code coverage. The Slim Framework uses
-`phpunit` for testing.
-
-[Learn about PHPUnit](https://github.com/sebastianbergmann/phpunit/)
-
-## Community
-
-### Forum and Knowledgebase
-
-Visit Slim's official forum and knowledge base at <http://help.slimframework.com> where you can find announcements,
-chat with fellow Slim users, ask questions, help others, or show off your cool Slim Framework apps.
-
-### Twitter
-
-Follow [@slimphp](http://www.twitter.com/slimphp) on Twitter to receive news and updates about the framework.
-
-## Author
-
-The Slim Framework is created and maintained by [Josh Lockhart](https://www.joshlockhart.com). Josh is a senior
-web developer at [New Media Campaigns](http://www.newmediacampaigns.com/). Josh also created and maintains
-[PHP: The Right Way](http://www.phptherightway.com/), a popular movement in the PHP community to introduce new
-PHP programmers to best practices and good information.
-
-## License
-
-The Slim Framework is released under the MIT public license.
-
-<http://www.slimframework.com/license>
+### /:token/courses/program/:year(/:program_id(/:semester))
+Извежда всички учебни предмети според това: за коя година са , коя специалност и кой семестър.
