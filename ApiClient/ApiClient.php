@@ -95,8 +95,6 @@
 			
 			if ( isset($params['start_year'] ) )
 			  $urlextend.="/".$params['start_year'];
-			if ( isset($params['end_year']) )
-			  $urlextend.="/".$params['end_year'];
             
 			if (empty($urlextend)) {
 				$data['error']="Missing parameters in get_semesters_by_filter";
