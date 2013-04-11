@@ -265,7 +265,7 @@ $app->get('/:token/semester_filter/:season(/:start_date)', function ($token,$sea
         }
 
         $where_clause = preg_replace('/^ AND/', '', $where_clause);
-        if ( strlen($where_clause)=0 ) {
+        if ( strlen($where_clause)>0 ) {
             $where_clause = " WHERE ".$where_clause;
             try {
                 $escaped_season = mysql_real_escape_string($season);

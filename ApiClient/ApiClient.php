@@ -192,7 +192,7 @@
             $urlextend="";
             if (!(isset($filter['year']))) {
                 $data['error']="Missing parameter array with key season in get_program_by_filter";
-                return $data
+                return $data;
             }
             
             $urlextend.="/".$filter['year'];
