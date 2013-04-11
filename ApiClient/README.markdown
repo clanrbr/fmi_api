@@ -54,3 +54,30 @@
 
 ## Как да го използвате
 
+Започваме с :
+    require_once 'ApiClient/ApiClient.php';
+    $apicl= new ApiClient(TOKEN);
+    
+Token ще ви бъде генериран в деня на състезанието.
+Ако не въведете TOKEN или е грешен ще получите json response с 
+`"error"=>"Invalid Token"`;
+
+##Описание на методите
+
+###get_all_programs
+
+Този метод не приема параметри.
+Използване :
+    $apicl->get_all_programs;
+
+Връща масив с всички бакалавърски специалности.
+
+###get_program_by_id
+Приема задължителен параметър id.
+Използване :
+    $apicl->get_program_by_id(1);
+
+Ако не се въведе ID извежда грешка 
+   `'error'="Missing parameter id in get_program_by_id";`
+Връща програма.
+
