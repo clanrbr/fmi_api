@@ -85,13 +85,13 @@
         private function _get_semesters_by_filter($params=array()) {
 			$data=[];
 			$urlextend="";
-			if ( isset($params['season']) ) {
-			  $urlextend.="/".$params['season'];
-			}
-			else {
+			
+			if ( !(isset($params['season'])) ) {
 			   $data['error']="Missing parameter array with key season in get_semesters_by_filter";
                            return $data;	
 			}
+			
+			$urlextend.="/".$params['season'];
 			
 			if ( isset($params['start_year'] ) )
 			  $urlextend.="/".$params['start_year'];
